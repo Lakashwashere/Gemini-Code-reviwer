@@ -1,11 +1,13 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
 import { PROGRAMMING_LANGUAGES, LANGUAGE_EXTENSIONS } from '../constants';
+import { fetchRepoContents } from '../services/githubService';
 import { Loader } from './Loader';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { UploadIcon } from './icons/UploadIcon';
 import { FolderIcon } from './icons/FolderIcon';
+import { GitHubIcon } from './icons/GitHubIcon';
 
 interface CodeInputProps {
   code: string;
@@ -19,6 +21,35 @@ interface CodeInputProps {
 export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, setLanguage, onSubmit, isLoading }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
+  const [githubUrl, setGithubUrl] = useState('');
+  const [isFetchingRepo, setIsFetchingRepo] = useState(false);
+  const [githubError, setGithubError] = useState<string | null>(null);
+
+  const handleFetchFromGithub = async () => {
+    if (!githubUrl.trim()) {
+      setGithubError("Please enter a GitHub URL.");
+      return;
+    }
+    setIsFetchingRepo(true);
+    setGithubError(null);
+    setCode('');
+    try {
+      const repoCode = await fetchRepoContents(githubUrl);
+      if(!repoCode) {
+        throw new Error("Could not fetch any reviewable files from the repository.");
+      }
+      setCode(repoCode);
+      // Set a sensible default language hint for projects
+      if (PROGRAMMING_LANGUAGES.includes('TypeScript')) {
+          setLanguage('TypeScript');
+      }
+      setGithubUrl(''); // Clear input on success
+    } catch (err) {
+      setGithubError(err instanceof Error ? err.message : "An unknown error occurred.");
+    } finally {
+      setIsFetchingRepo(false);
+    }
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -125,9 +156,39 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
           ))}
         </select>
         
+        <div className="mb-4">
+          <label htmlFor="github-url" className="block text-sm font-medium text-slate mb-2">
+            Import from GitHub
+          </label>
+          <div className="flex space-x-2">
+              <div className="relative flex-grow">
+                <GitHubIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate" />
+                <input
+                  id="github-url"
+                  type="url"
+                  value={githubUrl}
+                  onChange={(e) => setGithubUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleFetchFromGithub()}
+                  placeholder="https://github.com/owner/repo"
+                  className="w-full bg-light-navy border border-light-navy text-lightest-slate rounded-md py-2 pr-3 pl-10 focus:ring-2 focus:ring-accent focus:outline-none"
+                  disabled={isFetchingRepo}
+                  aria-label="GitHub repository URL"
+                />
+              </div>
+              <button
+                  onClick={handleFetchFromGithub}
+                  disabled={isFetchingRepo || !githubUrl.trim()}
+                  className="flex items-center justify-center bg-light-navy border border-light-navy text-lightest-slate font-medium py-2 px-4 rounded-md transition-colors duration-200 hover:bg-light-navy/70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-navy focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                  {isFetchingRepo ? <Loader className="h-5 w-5" /> : 'Fetch'}
+              </button>
+          </div>
+          {githubError && <p className="text-red-400 text-sm mt-2">{githubError}</p>}
+        </div>
+
         <div className="flex justify-between items-center mb-2">
             <label htmlFor="code-input" className="block text-sm font-medium text-slate">
-                Your Code
+                Or Paste / Upload
             </label>
             <div className="flex items-center space-x-4">
               <input

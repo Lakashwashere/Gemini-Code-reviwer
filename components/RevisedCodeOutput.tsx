@@ -3,37 +3,8 @@ import Prism from 'prismjs';
 import { CopyIcon } from './icons/CopyIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { FileIcon } from './icons/FileIcon';
-import { LANGUAGE_EXTENSIONS } from '../constants';
-
-type CodeFile = {
-  path: string;
-  content: string;
-};
-
-const getLanguageFromPath = (path: string): string => {
-  const extension = path.split('.').pop()?.toLowerCase() || '';
-  const languageName = LANGUAGE_EXTENSIONS[extension];
-  if (languageName) {
-    return languageName.toLowerCase().replace('++', 'cpp').replace('#', 'csharp');
-  }
-  return 'clike'; // default
-};
-
-const parseMultiFileCode = (code: string): CodeFile[] => {
-  if (!code.includes('// FILE:')) {
-    return [{ path: 'source.code', content: code.trim() }];
-  }
-  
-  const files = code.split('// FILE: ').slice(1).map(part => {
-    const newlineIndex = part.indexOf('\n');
-    const path = part.substring(0, newlineIndex).trim();
-    const content = part.substring(newlineIndex + 1).trim();
-    return { path, content };
-  });
-  
-  return files.filter(f => f.path && f.content);
-};
-
+import { getPrismLanguageFromPath, parseMultiFileCode } from '../utils/codeParser';
+import type { CodeFile } from '../utils/codeParser';
 
 interface RevisedCodeOutputProps {
   code: string;
@@ -74,7 +45,7 @@ export const RevisedCodeOutput: React.FC<RevisedCodeOutputProps> = ({ code }) =>
   }
 
   const isMultiFile = files.length > 1;
-  const languageClass = `language-${getLanguageFromPath(selectedFile.path)}`;
+  const languageClass = `language-${getPrismLanguageFromPath(selectedFile.path)}`;
 
   return (
     <div className="space-y-4">

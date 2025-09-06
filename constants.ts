@@ -1,4 +1,5 @@
 
+
 export const PROGRAMMING_LANGUAGES: string[] = [
   'Bash',
   'C',
@@ -63,3 +64,18 @@ export const LANGUAGE_EXTENSIONS: { [key: string]: string } = {
   'yaml': 'YAML',
   'yml': 'YAML',
 };
+
+export const IGNORED_FILES_AND_DIRS: string[] = [
+  '.git',
+  '.github',
+  '.vscode',
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
+  '.DS_Store',
+  'package-lock.json',
+  'yarn.lock',
+  'pnpm-lock.yaml',
+  'bun.lockb',
+];

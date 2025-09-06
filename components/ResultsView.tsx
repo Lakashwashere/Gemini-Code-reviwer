@@ -4,6 +4,8 @@ import { ReviewOutput } from './ReviewOutput';
 import { RevisedCodeOutput } from './RevisedCodeOutput';
 import { ExplanationOutput } from './ExplanationOutput';
 import { SparklesIcon } from './icons/SparklesIcon';
+import { DownloadIcon } from './icons/DownloadIcon';
+import { getMarkdownLanguageFromPath, parseMultiFileCode } from '../utils/codeParser';
 
 interface ResultsViewProps {
   review: ReviewFeedback | null;
@@ -15,6 +17,46 @@ type Tab = 'suggestions' | 'explanation' | 'revisedCode';
 
 export const ResultsView: React.FC<ResultsViewProps> = ({ review, isLoading, error }) => {
   const [activeTab, setActiveTab] = useState<Tab>('suggestions');
+
+  const handleSaveReview = () => {
+    if (!review) return;
+
+    const { summary, suggestions, explanation, revisedCode } = review;
+
+    let markdownContent = `# Gemini Code Review\n\n`;
+    
+    markdownContent += `## Summary\n\n${summary}\n\n`;
+
+    if (suggestions.length > 0) {
+        markdownContent += `## Suggestions\n\n`;
+        suggestions.forEach(s => {
+            markdownContent += `### ${s.category} in \`${s.file}\`\n\n`;
+            markdownContent += `**Issue:** ${s.description}\n\n`;
+            markdownContent += `**Suggestion:**\n> ${s.suggestion.replace(/\n/g, '\n> ')}\n\n`;
+            markdownContent += `---\n\n`;
+        });
+    }
+    
+    markdownContent += `## Explanation of Changes\n\n${explanation}\n\n`;
+
+    markdownContent += `## Revised Code\n\n`;
+    const files = parseMultiFileCode(revisedCode);
+    files.forEach(file => {
+        const lang = getMarkdownLanguageFromPath(file.path);
+        markdownContent += `### \`${file.path}\`\n\n`;
+        markdownContent += `\`\`\`${lang}\n${file.content}\n\`\`\`\n\n`;
+    });
+
+    const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gemini-code-review.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   if (isLoading) {
     return (
@@ -40,7 +82,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ review, isLoading, err
   if (review) {
     return (
       <div className="bg-navy rounded-lg shadow-lg p-6 flex flex-col h-full">
-        <div className="border-b border-light-navy mb-4">
+        <div className="border-b border-light-navy mb-4 flex justify-between items-center">
           <nav className="-mb-px flex space-x-6" aria-label="Tabs">
             <button
               onClick={() => setActiveTab('suggestions')}
@@ -76,6 +118,15 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ review, isLoading, err
               Revised Code
             </button>
           </nav>
+          <button
+            onClick={handleSaveReview}
+            className="flex items-center text-sm font-medium text-slate hover:text-accent transition-colors duration-200 p-2 rounded-md"
+            aria-label="Save review as Markdown"
+            title="Save review as Markdown"
+          >
+            <DownloadIcon className="h-5 w-5 mr-2" />
+            Save Review
+          </button>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
