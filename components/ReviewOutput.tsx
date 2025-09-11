@@ -1,5 +1,6 @@
+
 import React from 'react';
-import type { ReviewFeedback, Suggestion } from '../types.ts';
+import type { ReviewFeedback, Suggestion } from '../types';
 
 interface ReviewOutputProps {
   review: ReviewFeedback;

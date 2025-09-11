@@ -1,4 +1,5 @@
-import { shouldIncludeFile } from '../utils/fileFilter.ts';
+
+import { shouldIncludeFile } from '../utils/fileFilter';
 
 // FIX: Add type declaration for `process` to satisfy TypeScript for `process.env.GITHUB_PAT`.
 // Vite will replace `process.env.GITHUB_PAT` with its value at build time.

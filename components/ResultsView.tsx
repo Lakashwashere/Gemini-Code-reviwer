@@ -1,15 +1,16 @@
+
 import React, { useState, useMemo } from 'react';
-import type { ReviewFeedback } from '../types.ts';
-import { ReviewOutput } from './ReviewOutput.tsx';
-import { RevisedCodeOutput } from './RevisedCodeOutput.tsx';
-import { ExplanationOutput } from './ExplanationOutput.tsx';
-import { AIPromptOutput } from './AIPromptOutput.tsx';
-import { DiffView } from './DiffView.tsx';
-import { CodeRunner } from './CodeRunner.tsx';
-import { SparklesIcon } from './icons/SparklesIcon.tsx';
-import { DownloadIcon } from './icons/DownloadIcon.tsx';
-import { generateImprovementPrompt } from '../utils/promptGenerator.ts';
-import { exportReviewAsMarkdown } from '../utils/reviewExporter.ts';
+import type { ReviewFeedback } from '../types';
+import { ReviewOutput } from './ReviewOutput';
+import { RevisedCodeOutput } from './RevisedCodeOutput';
+import { ExplanationOutput } from './ExplanationOutput';
+import { AIPromptOutput } from './AIPromptOutput';
+import { DiffView } from './DiffView';
+import { CodeRunner } from './CodeRunner';
+import { SparklesIcon } from './icons/SparklesIcon';
+import { DownloadIcon } from './icons/DownloadIcon';
+import { generateImprovementPrompt } from '../utils/promptGenerator';
+import { exportReviewAsMarkdown } from '../utils/reviewExporter';
 
 interface ResultsViewProps {
   review: ReviewFeedback | null;

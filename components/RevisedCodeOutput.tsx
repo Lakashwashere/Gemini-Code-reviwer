@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { CopyIcon } from './icons/CopyIcon.tsx';
-import { CheckIcon } from './icons/CheckIcon.tsx';
-import { FileIcon } from './icons/FileIcon.tsx';
-import { getPrismLanguageFromPath, parseMultiFileCode } from '../utils/codeParser.ts';
-import type { CodeFile } from '../utils/codeParser.ts';
+import { CopyIcon } from './icons/CopyIcon';
+import { CheckIcon } from './icons/CheckIcon';
+import { FileIcon } from './icons/FileIcon';
+import { getPrismLanguageFromPath, parseMultiFileCode } from '../utils/codeParser';
+import type { CodeFile } from '../utils/codeParser';
 
 // Tell TypeScript that Prism will be available on the global scope from the script tag.
 declare const Prism: any;

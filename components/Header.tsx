@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { CodeIcon } from './icons/CodeIcon.tsx';
+import { CodeIcon } from './icons/CodeIcon';
 
 export const Header: React.FC = () => {
   return (

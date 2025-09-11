@@ -1,8 +1,9 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { Change } from 'diff';
-import { parseMultiFileCode } from '../utils/codeParser.ts';
-import { FileIcon } from './icons/FileIcon.tsx';
-import { Loader } from './Loader.tsx';
+import { parseMultiFileCode } from '../utils/codeParser';
+import { FileIcon } from './icons/FileIcon';
+import { Loader } from './Loader';
 
 interface DiffViewProps {
   originalCode: string;

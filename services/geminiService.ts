@@ -1,5 +1,6 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
-import type { ReviewFeedback } from '../types.ts';
+import type { ReviewFeedback } from '../types';
 
 // FIX: Add type declaration for `process` to satisfy TypeScript for `process.env.API_KEY`.
 // Vite will replace `process.env.API_KEY` with its value at build time.

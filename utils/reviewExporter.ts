@@ -1,5 +1,6 @@
-import type { ReviewFeedback } from '../types.ts';
-import { getMarkdownLanguageFromPath, parseMultiFileCode } from './codeParser.ts';
+
+import type { ReviewFeedback } from '../types';
+import { getMarkdownLanguageFromPath, parseMultiFileCode } from './codeParser';
 
 export const exportReviewAsMarkdown = (review: ReviewFeedback) => {
   const { summary, suggestions, explanation, revisedCode } = review;
