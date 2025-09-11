@@ -1,4 +1,4 @@
-import { shouldIncludeFile } from '../utils/fileFilter';
+import { shouldIncludeFile } from '../utils/fileFilter.ts';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 
@@ -38,24 +38,25 @@ const parseRepoUrl = (url: string): { owner: string; repo: string } | null => {
 const handleAuthError = (status: number) => {
     if (status === 401) {
         const authError = `GitHub API authentication failed (401 Unauthorized).`;
-        const instruction = `This means the Personal Access Token is invalid, expired, or lacks the correct permissions. Please verify your VITE_GITHUB_PAT in the .env.local file and ensure it has 'public_repo' scope.`;
+        const instruction = `This means the Personal Access Token is invalid, expired, or lacks the correct permissions. Please verify your PAT and ensure it has 'public_repo' scope.`;
         throw new Error(`${authError} ${instruction}`);
     }
     if (status === 403) {
         const rateLimitError = `GitHub API request forbidden (403 Forbidden).`;
-        const instruction = `This is likely due to rate limiting. Please ensure your VITE_GITHUB_PAT in the .env.local file is a valid token with 'public_repo' scope.`;
+        const instruction = `This is likely due to rate limiting. Please ensure your PAT is valid and has 'public_repo' scope.`;
         throw new Error(`${rateLimitError} ${instruction}`);
     }
 };
 
 export const fetchRepoContents = async (repoUrl: string): Promise<string> => {
-  const GITHUB_PAT = process.env.GITHUB_PAT;
+  // Safely access process.env to prevent ReferenceError in browser environments.
+  const GITHUB_PAT = globalThis.process?.env?.GITHUB_PAT;
 
   // The PAT is now required to prevent rate-limiting on unauthenticated requests.
   if (!GITHUB_PAT) {
     throw new Error(
-      'GitHub Personal Access Token is not configured. ' +
-      'Please create a token with `public_repo` scope and set it as VITE_GITHUB_PAT in your .env.local file to fetch repositories.'
+      'GitHub Personal Access Token is not configured in the execution environment. ' +
+      'Please create a token with `public_repo` scope and set it up to fetch repositories.'
     );
   }
 

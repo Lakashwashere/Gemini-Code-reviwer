@@ -1,15 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
-import JSZip from 'jszip';
-import { PROGRAMMING_LANGUAGES, LANGUAGE_EXTENSIONS, IGNORED_FILES_AND_DIRS } from '../constants';
-import { fetchRepoContents } from '../services/githubService';
-import { shouldIncludeFile } from '../utils/fileFilter';
-import { Loader } from './Loader';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { UploadIcon } from './icons/UploadIcon';
-import { FolderIcon } from './icons/FolderIcon';
-import { GitHubIcon } from './icons/GitHubIcon';
+import { PROGRAMMING_LANGUAGES, LANGUAGE_EXTENSIONS } from '../constants.ts';
+import { fetchRepoContents } from '../services/githubService.ts';
+import { Loader } from './Loader.tsx';
+import { SparklesIcon } from './icons/SparklesIcon.tsx';
+import { UploadIcon } from './icons/UploadIcon.tsx';
+import { FolderIcon } from './icons/FolderIcon.tsx';
+import { GitHubIcon } from './icons/GitHubIcon.tsx';
+import { shouldIncludeFile } from '../utils/fileFilter.ts';
 
 interface CodeInputProps {
   code: string;
@@ -35,6 +34,29 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
   const [githubUrl, setGithubUrl] = useState('');
   const [isFetchingRepo, setIsFetchingRepo] = useState(false);
   const [githubError, setGithubError] = useState<string | null>(null);
+  const zipWorkerRef = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    // Initialize the zip worker using the standard Web Worker API for browser compatibility.
+    zipWorkerRef.current = new Worker(new URL('../workers/zip.worker.ts', import.meta.url), { type: 'module' });
+
+    zipWorkerRef.current.onmessage = (event: MessageEvent<{ success: boolean; code?: string; error?: string }>) => {
+      const { success, code, error } = event.data;
+      if (success && code) {
+        setCode(code);
+        setLanguage(getDefaultProjectLanguage(language));
+      } else {
+        setGithubError(error || "An unknown error occurred while processing the zip file.");
+      }
+      setIsFetchingRepo(false);
+    };
+
+    // Cleanup worker on component unmount
+    return () => {
+      zipWorkerRef.current?.terminate();
+    };
+  }, [language, setCode, setLanguage]);
+
 
   const handleFetchFromGithub = async () => {
     if (!githubUrl.trim()) {
@@ -80,43 +102,13 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
     reader.readAsText(file);
   };
   
-  const handleZipFile = async (file: File) => {
+  const handleZipFile = (file: File) => {
     setIsFetchingRepo(true); // Reuse loading state for UI feedback
     setGithubError(null);
-    try {
-        const zip = await JSZip.loadAsync(file);
-        let projectCode = '';
-        const filePromises: Promise<void>[] = [];
-
-        zip.forEach((relativePath, zipEntry) => {
-            if (zipEntry.dir || !shouldIncludeFile(relativePath)) {
-                console.log(`Skipping: ${relativePath}`);
-                return;
-            }
-
-            const promise = zipEntry.async('string').then(content => {
-                projectCode += `// FILE: ${relativePath}\n${content}\n\n`;
-            });
-            filePromises.push(promise);
-        });
-
-        await Promise.all(filePromises);
-
-        if (!projectCode.trim()) {
-            throw new Error("No reviewable source code files found in the zip archive.");
-        }
-
-        setCode(projectCode);
-        setLanguage(getDefaultProjectLanguage(language));
-    } catch (err) {
-        console.error("Error reading zip file:", err);
-        setGithubError(err instanceof Error ? err.message : "Failed to process the zip file.");
-    } finally {
-        setIsFetchingRepo(false);
-    }
+    zipWorkerRef.current?.postMessage(file);
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -125,7 +117,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
     setGithubError(null);
 
     if (extension === 'zip') {
-      await handleZipFile(file);
+      handleZipFile(file);
     } else {
       handleTextFile(file);
     }

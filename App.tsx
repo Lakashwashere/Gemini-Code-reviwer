@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { Header } from './components/Header';
-import { CodeInput } from './components/CodeInput';
-import { ResultsView } from './components/ResultsView';
-import { getCodeReview } from './services/geminiService';
-import type { ReviewFeedback } from './types';
-import { DEFAULT_LANGUAGE } from './constants';
+import { Header } from './components/Header.tsx';
+import { CodeInput } from './components/CodeInput.tsx';
+import { ResultsView } from './components/ResultsView.tsx';
+import { getCodeReview } from './services/geminiService.ts';
+import type { ReviewFeedback } from './types.ts';
+import { DEFAULT_LANGUAGE } from './constants.ts';
 
 const App: React.FC = () => {
   const [code, setCode] = useState<string>('');
@@ -76,6 +76,7 @@ const App: React.FC = () => {
               isLoading={isLoading}
               error={error}
               code={code}
+              language={language}
             />
           </div>
         </div>

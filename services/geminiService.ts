@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { ReviewFeedback } from '../types';
+import type { ReviewFeedback } from '../types.ts';
 
 const reviewSchema = {
   type: Type.OBJECT,
@@ -49,7 +49,9 @@ const reviewSchema = {
 // FIX: Function signature updated to not accept an API key, as it will be sourced from environment variables.
 export const getCodeReview = async (code: string, language: string): Promise<ReviewFeedback> => {
   // FIX: Per coding guidelines, instantiate GoogleGenAI with the API key from process.env.
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Safely access process.env to prevent ReferenceError in browser environments.
+  const apiKey = globalThis.process?.env?.API_KEY;
+  const ai = new GoogleGenAI({ apiKey });
   
   const isMultiFile = code.includes('// FILE:');
 
@@ -105,6 +107,9 @@ export const getCodeReview = async (code: string, language: string): Promise<Rev
     
     if (errorMessage.includes('JSON')) {
         throw new Error("Failed to get a valid JSON response from the AI. The model may have returned an unexpected format. Please try again.");
+    }
+    if (errorMessage.includes('API key')) {
+        throw new Error("An error occurred while communicating with the AI. Please ensure your API key is correctly configured in your execution environment.");
     }
     throw new Error("An error occurred while communicating with the AI. This could be a network issue, an invalid API key, or an issue with the AI service. Please check the console for more details.");
   }

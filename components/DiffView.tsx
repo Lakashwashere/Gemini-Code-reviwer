@@ -1,16 +1,15 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import * as Diff from 'diff';
-import { parseMultiFileCode } from '../utils/codeParser';
-import type { CodeFile } from '../utils/codeParser';
-import { FileIcon } from './icons/FileIcon';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import type { Change } from 'diff';
+import { parseMultiFileCode } from '../utils/codeParser.ts';
+import { FileIcon } from './icons/FileIcon.tsx';
+import { Loader } from './Loader.tsx';
 
 interface DiffViewProps {
   originalCode: string;
   revisedCode: string;
 }
 
-// A component to render a single line of the diff
-const DiffLine: React.FC<{ part: Diff.Change }> = ({ part }) => {
+const DiffLine: React.FC<{ part: Change }> = ({ part }) => {
     const className = part.added ? 'diff-added' : part.removed ? 'diff-removed' : 'diff-common';
     const lines = part.value.replace(/\n$/, '').split('\n');
 
@@ -28,8 +27,7 @@ const DiffLine: React.FC<{ part: Diff.Change }> = ({ part }) => {
 export const DiffView: React.FC<DiffViewProps> = ({ originalCode, revisedCode }) => {
   const originalFiles = useMemo(() => parseMultiFileCode(originalCode), [originalCode]);
   const revisedFiles = useMemo(() => parseMultiFileCode(revisedCode), [revisedCode]);
-
-  // Create a unified list of all file paths from both original and revised versions
+  
   const allFilePaths = useMemo(() => {
     const paths = new Set<string>();
     originalFiles.forEach(f => paths.add(f.path));
@@ -38,25 +36,40 @@ export const DiffView: React.FC<DiffViewProps> = ({ originalCode, revisedCode })
   }, [originalFiles, revisedFiles]);
 
   const [selectedFilePath, setSelectedFilePath] = useState<string | undefined>(allFilePaths[0]);
+  const [diffResult, setDiffResult] = useState<Change[] | null>(null);
+  const [isDiffing, setIsDiffing] = useState(false);
+  const diffWorkerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
-    // Set initial selected file
-    if (!selectedFilePath && allFilePaths.length > 0) {
-      setSelectedFilePath(allFilePaths[0]);
-    }
-  }, [allFilePaths, selectedFilePath]);
+    // Initialize the diff worker using the standard Web Worker API for browser compatibility.
+    diffWorkerRef.current = new Worker(new URL('../workers/diff.worker.ts', import.meta.url), { type: 'module' });
+    
+    diffWorkerRef.current.onmessage = (event: MessageEvent<Change[]>) => {
+      setDiffResult(event.data);
+      setIsDiffing(false);
+    };
 
-  const diffResult = useMemo(() => {
-    if (!selectedFilePath) return null;
+    return () => {
+      diffWorkerRef.current?.terminate();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedFilePath) return;
+
+    setIsDiffing(true);
+    setDiffResult(null);
 
     const originalFile = originalFiles.find(f => f.path === selectedFilePath);
     const revisedFile = revisedFiles.find(f => f.path === selectedFilePath);
 
     const originalContent = originalFile?.content || '';
     const revisedContent = revisedFile?.content || '';
+    
+    diffWorkerRef.current?.postMessage({ originalContent, revisedContent });
 
-    return Diff.diffLines(originalContent, revisedContent);
   }, [selectedFilePath, originalFiles, revisedFiles]);
+
 
   const isMultiFile = allFilePaths.length > 1;
 
@@ -96,9 +109,15 @@ export const DiffView: React.FC<DiffViewProps> = ({ originalCode, revisedCode })
         <main className="flex-1 relative">
           <pre className={`p-4 overflow-auto h-full ${isMultiFile ? 'rounded-r-lg' : 'rounded-lg'}`}>
             <code className="diff">
-                {diffResult ? diffResult.map((part, index) => (
+                {isDiffing && (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader className="h-8 w-8 text-accent" />
+                    <span className="ml-4 text-slate">Calculating diff...</span>
+                  </div>
+                )}
+                {!isDiffing && diffResult ? diffResult.map((part, index) => (
                     <DiffLine key={index} part={part} />
-                )) : 'Select a file to view the diff.'}
+                )) : !isDiffing && 'Select a file to view the diff.'}
             </code>
           </pre>
         </main>

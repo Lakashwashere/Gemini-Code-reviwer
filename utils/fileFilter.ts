@@ -1,4 +1,4 @@
-import { LANGUAGE_EXTENSIONS, IGNORED_FILES_AND_DIRS } from '../constants';
+import { LANGUAGE_EXTENSIONS, IGNORED_FILES_AND_DIRS } from '../constants.ts';
 
 export const shouldIncludeFile = (path: string): boolean => {
   // Ignore files starting with a dot (hidden files) unless they are in the explicit extension list

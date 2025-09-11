@@ -1,4 +1,4 @@
-import type { ReviewFeedback } from '../types';
+import type { ReviewFeedback } from '../types.ts';
 
 export const generateImprovementPrompt = (review: ReviewFeedback, originalCode: string): string => {
   let prompt = `You are an expert software engineer. Your task is to refactor the following code based on the provided code review feedback.

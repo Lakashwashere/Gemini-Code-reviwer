@@ -15,8 +15,12 @@ export default defineConfig(({ mode }) => {
       },
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '.'),
+          // FIX: Use process.cwd() which is more reliable than __dirname in some environments.
+          '@': path.resolve(process.cwd()),
         }
-      }
+      },
+      worker: {
+        format: 'es',
+      },
     };
 });
