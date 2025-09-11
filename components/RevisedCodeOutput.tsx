@@ -80,7 +80,7 @@ export const RevisedCodeOutput: React.FC<RevisedCodeOutputProps> = React.memo(({
           >
             {copied ? <CheckIcon className="h-5 w-5 text-accent" /> : <CopyIcon className="h-5 w-5" />}
           </button>
-          <pre className={`p-4 pt-12 overflow-auto h-full ${isMultiFile ? 'rounded-r-lg' : 'rounded-lg'}`}>
+          <pre className={`p-4 overflow-auto h-full ${isMultiFile ? 'rounded-r-lg' : 'rounded-lg'}`}>
             <code ref={codeRef} className={languageClass}>
               {selectedFile.content}
             </code>

@@ -1,5 +1,6 @@
 
 
+
 export const PROGRAMMING_LANGUAGES: string[] = [
   'Bash',
   'C',
@@ -24,6 +25,8 @@ export const PROGRAMMING_LANGUAGES: string[] = [
   'XML',
   'YAML',
 ].sort();
+
+export const DEFAULT_LANGUAGE = 'TypeScript';
 
 export const LANGUAGE_EXTENSIONS: { [key: string]: string } = {
   'sh': 'Bash',

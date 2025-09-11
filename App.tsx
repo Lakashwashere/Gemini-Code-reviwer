@@ -1,18 +1,28 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Header } from './components/Header';
 import { CodeInput } from './components/CodeInput';
 import { ResultsView } from './components/ResultsView';
 import { getCodeReview } from './services/geminiService';
 import type { ReviewFeedback } from './types';
-import { PROGRAMMING_LANGUAGES } from './constants';
+import { DEFAULT_LANGUAGE } from './constants';
 
 const App: React.FC = () => {
   const [code, setCode] = useState<string>('');
-  const [language, setLanguage] = useState<string>(PROGRAMMING_LANGUAGES[0]);
+  const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
   const [review, setReview] = useState<ReviewFeedback | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const API_KEY = process.env.API_KEY;
+  // FIX: Per coding guidelines, the API key is handled by the API service, not in the UI component.
+  // This change also resolves the TypeScript error on 'import.meta.env'.
+
+  const requestCancelled = useRef(false);
+
+  const handleCancelRequest = useCallback(() => {
+    requestCancelled.current = true;
+    setIsLoading(false);
+    setError('Code review cancelled by user.');
+    setReview(null);
+  }, []);
 
   const handleReviewRequest = useCallback(async () => {
     if (!code.trim()) {
@@ -20,25 +30,29 @@ const App: React.FC = () => {
       return;
     }
 
-    if (!API_KEY) {
-      setError('API Key is not configured. Please ensure the API_KEY environment variable is set.');
-      return;
-    }
-    
     setIsLoading(true);
     setError(null);
     setReview(null);
+    requestCancelled.current = false; // Reset cancellation flag
 
     try {
-      const result = await getCodeReview(code, language, API_KEY);
+      const result = await getCodeReview(code, language);
+      if (requestCancelled.current) {
+          console.log('Review was cancelled, discarding results.');
+          return;
+      }
       setReview(result);
     } catch (err) {
+      if (requestCancelled.current) {
+          console.log('Review was cancelled, discarding error.');
+          return;
+      }
       console.error(err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred.');
     } finally {
       setIsLoading(false);
     }
-  }, [code, language, API_KEY]);
+  }, [code, language]);
 
   return (
     <div className="min-h-screen bg-dark-navy text-slate font-sans">
@@ -53,6 +67,7 @@ const App: React.FC = () => {
               setLanguage={setLanguage}
               onSubmit={handleReviewRequest}
               isLoading={isLoading}
+              onCancel={handleCancelRequest}
             />
           </div>
           <div className="min-h-[500px] lg:min-h-0">

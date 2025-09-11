@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
-import { PROGRAMMING_LANGUAGES, LANGUAGE_EXTENSIONS } from '../constants';
+import { PROGRAMMING_LANGUAGES, LANGUAGE_EXTENSIONS, IGNORED_FILES_AND_DIRS } from '../constants';
 import { fetchRepoContents } from '../services/githubService';
 import { Loader } from './Loader';
 import { SparklesIcon } from './icons/SparklesIcon';
@@ -16,9 +16,18 @@ interface CodeInputProps {
   setLanguage: (language: string) => void;
   onSubmit: () => void;
   isLoading: boolean;
+  onCancel: () => void;
 }
 
-export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, setLanguage, onSubmit, isLoading }) => {
+const getDefaultProjectLanguage = (currentLanguage: string) => {
+    return PROGRAMMING_LANGUAGES.includes('TypeScript')
+        ? 'TypeScript'
+        : PROGRAMMING_LANGUAGES.includes('JavaScript')
+          ? 'JavaScript'
+          : currentLanguage;
+};
+
+export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, setLanguage, onSubmit, isLoading, onCancel }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [githubUrl, setGithubUrl] = useState('');
@@ -39,13 +48,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
         throw new Error("Could not fetch any reviewable files from the repository.");
       }
       setCode(repoCode);
-      // Set a sensible default language hint for projects
-      const defaultProjectLanguage = PROGRAMMING_LANGUAGES.includes('TypeScript')
-        ? 'TypeScript'
-        : PROGRAMMING_LANGUAGES.includes('JavaScript')
-          ? 'JavaScript'
-          : language;
-      setLanguage(defaultProjectLanguage);
+      setLanguage(getDefaultProjectLanguage(language));
       setGithubUrl(''); // Clear input on success
     } catch (err) {
       setGithubError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -87,8 +90,10 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
     const filePromises = Array.from(files).map(file => {
       return new Promise<void>((resolve, reject) => {
         const extension = file.name.split('.').pop()?.toLowerCase() || '';
-        if (!LANGUAGE_EXTENSIONS[extension]) {
-          console.log(`Skipping unsupported file type: ${file.webkitRelativePath}`);
+        const pathParts = file.webkitRelativePath.split('/');
+        
+        if (!LANGUAGE_EXTENSIONS[extension] || pathParts.some(part => IGNORED_FILES_AND_DIRS.includes(part))) {
+          console.log(`Skipping file: ${file.webkitRelativePath}`);
           resolve();
           return;
         }
@@ -111,13 +116,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
     try {
       await Promise.all(filePromises);
       setCode(projectCode);
-      // Set a sensible default language hint for projects
-      const defaultProjectLanguage = PROGRAMMING_LANGUAGES.includes('TypeScript')
-        ? 'TypeScript'
-        : PROGRAMMING_LANGUAGES.includes('JavaScript')
-          ? 'JavaScript'
-          : language;
-      setLanguage(defaultProjectLanguage);
+      setLanguage(getDefaultProjectLanguage(language));
     } catch (err) {
       console.error("Error reading folder contents:", err);
     }
@@ -202,7 +201,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
                 ref={folderInputRef}
                 onChange={handleFolderChange}
                 className="hidden"
-                // @ts-ignore // webkitdirectory is a non-standard attribute for folder upload
+                // @ts-ignore - `webkitdirectory` is a non-standard attribute for folder selection.
                 webkitdirectory=""
                 mozdirectory=""
               />
@@ -248,23 +247,33 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
           />
         </div>
       </div>
-      <button
-        onClick={onSubmit}
-        disabled={isLoading || !code.trim()}
-        className="mt-6 w-full flex items-center justify-center border border-accent text-accent font-mono py-3 px-4 rounded-md transition-all duration-300 hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-navy focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-      >
-        {isLoading ? (
-          <>
-            <Loader className="h-5 w-5 mr-3" />
-            Analyzing...
-          </>
-        ) : (
-          <>
-            <SparklesIcon className="h-5 w-5 mr-2 text-accent" />
-            Review Code
-          </>
+      <div className="mt-6">
+        <button
+          onClick={onSubmit}
+          disabled={isLoading || !code.trim()}
+          className="w-full flex items-center justify-center border border-accent text-accent font-mono py-3 px-4 rounded-md transition-all duration-300 hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-navy focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+        >
+          {isLoading ? (
+            <>
+              <Loader className="h-5 w-5 mr-3" />
+              Analyzing...
+            </>
+          ) : (
+            <>
+              <SparklesIcon className="h-5 w-5 mr-2 text-accent" />
+              Review Code
+            </>
+          )}
+        </button>
+        {isLoading && (
+            <button
+                onClick={onCancel}
+                className="w-full mt-2 flex items-center justify-center border border-slate text-slate font-mono py-3 px-4 rounded-md transition-all duration-300 hover:bg-slate/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-navy focus:ring-slate"
+            >
+                Cancel
+            </button>
         )}
-      </button>
+      </div>
     </div>
   );
 };

@@ -46,11 +46,10 @@ const reviewSchema = {
   required: ["summary", "suggestions", "revisedCode", "explanation"],
 };
 
-export const getCodeReview = async (code: string, language: string, apiKey: string): Promise<ReviewFeedback> => {
-  if (!apiKey) {
-    throw new Error("API Key is required for the getCodeReview function.");
-  }
-  const ai = new GoogleGenAI({ apiKey });
+// FIX: Function signature updated to not accept an API key, as it will be sourced from environment variables.
+export const getCodeReview = async (code: string, language: string): Promise<ReviewFeedback> => {
+  // FIX: Per coding guidelines, instantiate GoogleGenAI with the API key from process.env.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const isMultiFile = code.includes('// FILE:');
 

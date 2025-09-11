@@ -35,7 +35,7 @@ export const AIPromptOutput: React.FC<AIPromptOutputProps> = React.memo(({ promp
           >
             {copied ? <CheckIcon className="h-5 w-5 text-accent" /> : <CopyIcon className="h-5 w-5" />}
           </button>
-          <pre className="p-4 pt-12 overflow-auto max-h-[60vh]">
+          <pre className="p-4 overflow-auto max-h-[60vh]">
             <code className="text-sm whitespace-pre-wrap font-mono text-lightest-slate">
               {prompt}
             </code>
