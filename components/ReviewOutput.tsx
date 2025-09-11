@@ -16,7 +16,7 @@ const getCategoryStyle = (category: string) => {
   }
 };
 
-const SuggestionCard: React.FC<{ suggestion: Suggestion }> = React.memo(({ suggestion }) => {
+const SuggestionCard: React.FC<{ suggestion: Suggestion }> = ({ suggestion }) => {
   return (
     <div className="bg-light-navy rounded-lg p-4 border border-light-navy hover:border-accent/50 transition-colors duration-300">
       <div className="flex items-center justify-between mb-3 gap-4">
@@ -37,9 +37,9 @@ const SuggestionCard: React.FC<{ suggestion: Suggestion }> = React.memo(({ sugge
       </div>
     </div>
   );
-});
+};
 
-export const ReviewOutput: React.FC<ReviewOutputProps> = React.memo(({ review }) => {
+export const ReviewOutput: React.FC<ReviewOutputProps> = ({ review }) => {
   return (
     <div className="space-y-8">
       <div>
@@ -60,4 +60,4 @@ export const ReviewOutput: React.FC<ReviewOutputProps> = React.memo(({ review })
       </div>
     </div>
   );
-});
+};

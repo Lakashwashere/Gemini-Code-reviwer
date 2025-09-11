@@ -1,5 +1,13 @@
 import { shouldIncludeFile } from '../utils/fileFilter.ts';
 
+// FIX: Add type declaration for `process` to satisfy TypeScript for `process.env.GITHUB_PAT`.
+// Vite will replace `process.env.GITHUB_PAT` with its value at build time.
+declare var process: {
+  env: {
+    GITHUB_PAT: string;
+  }
+};
+
 const GITHUB_API_BASE = 'https://api.github.com';
 
 // Type definitions for GitHub API responses
@@ -49,8 +57,9 @@ const handleAuthError = (status: number) => {
 };
 
 export const fetchRepoContents = async (repoUrl: string): Promise<string> => {
-  // Safely access process.env to prevent ReferenceError in browser environments.
-  const GITHUB_PAT = globalThis.process?.env?.GITHUB_PAT;
+  // FIX: Use `process.env.GITHUB_PAT` directly. Vite replaces this at build time.
+  // The `globalThis.process` syntax is incorrect for Vite's `define` replacement and causes type errors.
+  const GITHUB_PAT = process.env.GITHUB_PAT;
 
   // The PAT is now required to prevent rate-limiting on unauthenticated requests.
   if (!GITHUB_PAT) {

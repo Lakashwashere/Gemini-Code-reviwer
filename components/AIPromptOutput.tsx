@@ -6,7 +6,7 @@ interface AIPromptOutputProps {
   prompt: string;
 }
 
-export const AIPromptOutput: React.FC<AIPromptOutputProps> = React.memo(({ prompt }) => {
+export const AIPromptOutput: React.FC<AIPromptOutputProps> = ({ prompt }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -44,4 +44,4 @@ export const AIPromptOutput: React.FC<AIPromptOutputProps> = React.memo(({ promp
       </div>
     </div>
   );
-});
+};

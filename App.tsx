@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { Header } from './components/Header.tsx';
 import { CodeInput } from './components/CodeInput.tsx';
@@ -6,7 +7,7 @@ import { getCodeReview } from './services/geminiService.ts';
 import type { ReviewFeedback } from './types.ts';
 import { DEFAULT_LANGUAGE } from './constants.ts';
 
-const App: React.FC = () => {
+export const App: React.FC = () => {
   const [code, setCode] = useState<string>('');
   const [language, setLanguage] = useState<string>(DEFAULT_LANGUAGE);
   const [review, setReview] = useState<ReviewFeedback | null>(null);
@@ -84,5 +85,3 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-export default App;

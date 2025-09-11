@@ -1,6 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ReviewFeedback } from '../types.ts';
 
+// FIX: Add type declaration for `process` to satisfy TypeScript for `process.env.API_KEY`.
+// Vite will replace `process.env.API_KEY` with its value at build time.
+declare var process: {
+  env: {
+    API_KEY: string;
+  }
+};
+
 const reviewSchema = {
   type: Type.OBJECT,
   properties: {
@@ -49,8 +57,8 @@ const reviewSchema = {
 // FIX: Function signature updated to not accept an API key, as it will be sourced from environment variables.
 export const getCodeReview = async (code: string, language: string): Promise<ReviewFeedback> => {
   // FIX: Per coding guidelines, instantiate GoogleGenAI with the API key from process.env.
-  // Safely access process.env to prevent ReferenceError in browser environments.
-  const apiKey = globalThis.process?.env?.API_KEY;
+  // The `globalThis.process` syntax is incorrect for Vite's `define` replacement and caused type errors.
+  const apiKey = process.env.API_KEY;
   const ai = new GoogleGenAI({ apiKey });
   
   const isMultiFile = code.includes('// FILE:');
