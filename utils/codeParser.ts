@@ -1,5 +1,5 @@
 
-import { LANGUAGE_EXTENSIONS } from '../constants';
+import { LANGUAGE_EXTENSIONS } from '../constants.ts';
 
 export type CodeFile = {
   path: string;

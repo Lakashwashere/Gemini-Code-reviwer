@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { CopyIcon } from './icons/CopyIcon';
-import { CheckIcon } from './icons/CheckIcon';
+import { CopyIcon } from './icons/CopyIcon.tsx';
+import { CheckIcon } from './icons/CheckIcon.tsx';
 
 interface AIPromptOutputProps {
   prompt: string;

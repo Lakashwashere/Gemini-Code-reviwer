@@ -1,14 +1,14 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Editor from 'react-simple-code-editor';
-import { PROGRAMMING_LANGUAGES, LANGUAGE_EXTENSIONS } from '../constants';
-import { fetchRepoContents } from '../services/githubService';
-import { Loader } from './Loader';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { UploadIcon } from './icons/UploadIcon';
-import { FolderIcon } from './icons/FolderIcon';
-import { GitHubIcon } from './icons/GitHubIcon';
-import { shouldIncludeFile } from '../utils/fileFilter';
+import { PROGRAMMING_LANGUAGES, LANGUAGE_EXTENSIONS } from '../constants.ts';
+import { fetchRepoContents } from '../services/githubService.ts';
+import { Loader } from './Loader.tsx';
+import { SparklesIcon } from './icons/SparklesIcon.tsx';
+import { UploadIcon } from './icons/UploadIcon.tsx';
+import { FolderIcon } from './icons/FolderIcon.tsx';
+import { GitHubIcon } from './icons/GitHubIcon.tsx';
+import { shouldIncludeFile } from '../utils/fileFilter.ts';
 
 // Tell TypeScript that Prism will be available on the global scope from the script tag.
 declare const Prism: any;

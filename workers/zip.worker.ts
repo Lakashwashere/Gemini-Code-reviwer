@@ -1,6 +1,6 @@
 
 import JSZip from 'jszip';
-import { shouldIncludeFile } from '../utils/fileFilter';
+import { shouldIncludeFile } from '../utils/fileFilter.ts';
 
 // Ensure the worker context is typed correctly.
 const ctx: Worker = self as any;

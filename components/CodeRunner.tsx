@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { parseMultiFileCode } from '../utils/codeParser';
-import { PlayIcon } from './icons/PlayIcon';
-import { TrashIcon } from './icons/TrashIcon';
+import { parseMultiFileCode } from '../utils/codeParser.ts';
+import { PlayIcon } from './icons/PlayIcon.tsx';
+import { TrashIcon } from './icons/TrashIcon.tsx';
 
 interface CodeRunnerProps {
   code: string;
