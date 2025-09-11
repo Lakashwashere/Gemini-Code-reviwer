@@ -19,11 +19,6 @@ interface TreeResponse {
   truncated: boolean;
 }
 
-interface BlobResponse {
-  content: string; // base64 encoded
-  encoding: 'base64';
-}
-
 const parseRepoUrl = (url: string): { owner: string; repo: string } | null => {
   try {
     const urlObj = new URL(url);
@@ -95,15 +90,15 @@ export const fetchRepoContents = async (repoUrl: string): Promise<string> => {
 
   const fileContentPromises = filesToFetch.map(async (file) => {
     try {
-      const blobResponse = await fetch(file.url);
-      if (!blobResponse.ok) {
-        console.error(`Failed to fetch blob for ${file.path}`);
+      const rawFileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${file.path}`;
+      const rawFileResponse = await fetch(rawFileUrl);
+
+      if (!rawFileResponse.ok) {
+        console.error(`Failed to fetch raw file for ${file.path}. Status: ${rawFileResponse.status}`);
         return null;
       }
-      const blobData: BlobResponse = await blobResponse.json();
-      // NOTE: atob() is synchronous and can block the main thread for very large files.
-      // For very large repositories, consider offloading this to a Web Worker.
-      const content = atob(blobData.content);
+      const content = await rawFileResponse.text();
+      // Add a space after the colon to match the parser
       return `// FILE: ${file.path}\n${content}\n\n`;
     } catch (e) {
       console.error(`Error processing file ${file.path}:`, e);

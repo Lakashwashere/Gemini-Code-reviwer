@@ -96,6 +96,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
         const reader = new FileReader();
         reader.onload = (e) => {
           const content = e.target?.result as string;
+          // Add a space after the colon to match the parser
           projectCode += `// FILE: ${file.webkitRelativePath}\n${content}\n\n`;
           resolve();
         };
