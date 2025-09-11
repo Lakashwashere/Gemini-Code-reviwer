@@ -10,7 +10,7 @@ interface RevisedCodeOutputProps {
   code: string;
 }
 
-export const RevisedCodeOutput: React.FC<RevisedCodeOutputProps> = ({ code }) => {
+export const RevisedCodeOutput: React.FC<RevisedCodeOutputProps> = React.memo(({ code }) => {
   const [copied, setCopied] = useState(false);
   const files = useMemo(() => parseMultiFileCode(code), [code]);
   const [selectedFile, setSelectedFile] = useState<CodeFile | undefined>(files[0]);
@@ -89,4 +89,4 @@ export const RevisedCodeOutput: React.FC<RevisedCodeOutputProps> = ({ code }) =>
       </div>
     </div>
   );
-};
+});

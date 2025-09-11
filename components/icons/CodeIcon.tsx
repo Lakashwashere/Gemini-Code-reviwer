@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-export const CodeIcon: React.FC<{ className?: string }> = ({ className }) => (
+export const CodeIcon: React.FC<{ className?: string }> = React.memo(({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -17,4 +17,4 @@ export const CodeIcon: React.FC<{ className?: string }> = ({ className }) => (
     <polyline points="16 18 22 12 16 6"></polyline>
     <polyline points="8 6 2 12 8 18"></polyline>
   </svg>
-);
+));

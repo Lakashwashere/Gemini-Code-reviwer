@@ -5,7 +5,7 @@ interface LoaderProps {
   className?: string;
 }
 
-export const Loader: React.FC<LoaderProps> = ({ className }) => {
+export const Loader: React.FC<LoaderProps> = React.memo(({ className }) => {
   return (
     <svg 
       role="status"
@@ -30,4 +30,4 @@ export const Loader: React.FC<LoaderProps> = ({ className }) => {
       ></path>
     </svg>
   );
-};
+});

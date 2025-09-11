@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-export const SparklesIcon: React.FC<{ className?: string }> = ({ className }) => (
+export const SparklesIcon: React.FC<{ className?: string }> = React.memo(({ className }) => (
     <svg 
         xmlns="http://www.w3.org/2000/svg" 
         width="24" 
@@ -20,4 +20,4 @@ export const SparklesIcon: React.FC<{ className?: string }> = ({ className }) =>
         <path d="M3 5h4"/>
         <path d="M17 19h4"/>
     </svg>
-);
+));

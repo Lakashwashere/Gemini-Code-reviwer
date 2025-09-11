@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
+export const CheckIcon: React.FC<{ className?: string }> = React.memo(({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -16,4 +16,4 @@ export const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
   >
     <polyline points="20 6 9 17 4 12" />
   </svg>
-);
+));

@@ -54,6 +54,7 @@ const App: React.FC = () => {
               review={review}
               isLoading={isLoading}
               error={error}
+              code={code}
             />
           </div>
         </div>
