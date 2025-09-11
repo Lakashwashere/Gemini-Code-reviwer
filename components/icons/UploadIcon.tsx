@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const UploadIcon: React.FC<{ className?: string }> = React.memo(({ className }) => (
+export const UploadIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -18,4 +18,4 @@ export const UploadIcon: React.FC<{ className?: string }> = React.memo(({ classN
     <polyline points="17 8 12 3 7 8" />
     <line x1="12" y1="3" x2="12" y2="15" />
   </svg>
-));
+);

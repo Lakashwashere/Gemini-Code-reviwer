@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import Prism from 'prismjs';
 import { CopyIcon } from './icons/CopyIcon.tsx';
 import { CheckIcon } from './icons/CheckIcon.tsx';
 import { FileIcon } from './icons/FileIcon.tsx';
 import { getPrismLanguageFromPath, parseMultiFileCode } from '../utils/codeParser.ts';
 import type { CodeFile } from '../utils/codeParser.ts';
+
+// Tell TypeScript that Prism will be available on the global scope from the script tag.
+declare const Prism: any;
 
 interface RevisedCodeOutputProps {
   code: string;
@@ -21,7 +23,7 @@ export const RevisedCodeOutput: React.FC<RevisedCodeOutputProps> = React.memo(({
   }, [files]);
 
   useEffect(() => {
-    if (selectedFile && codeRef.current) {
+    if (selectedFile && codeRef.current && typeof Prism !== 'undefined') {
       Prism.highlightElement(codeRef.current);
     }
   }, [selectedFile]);

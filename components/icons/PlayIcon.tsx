@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const PlayIcon: React.FC<{ className?: string }> = React.memo(({ className }) => (
+export const PlayIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -16,4 +16,4 @@ export const PlayIcon: React.FC<{ className?: string }> = React.memo(({ classNam
   >
     <polygon points="5 3 19 12 5 21 5 3"></polygon>
   </svg>
-));
+);

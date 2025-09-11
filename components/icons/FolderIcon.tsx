@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const FolderIcon: React.FC<{ className?: string }> = React.memo(({ className }) => (
+export const FolderIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -16,4 +16,4 @@ export const FolderIcon: React.FC<{ className?: string }> = React.memo(({ classN
   >
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
   </svg>
-));
+);

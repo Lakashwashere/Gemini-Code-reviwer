@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Editor from 'react-simple-code-editor';
-import Prism from 'prismjs';
 import { PROGRAMMING_LANGUAGES, LANGUAGE_EXTENSIONS } from '../constants.ts';
 import { fetchRepoContents } from '../services/githubService.ts';
 import { Loader } from './Loader.tsx';
@@ -9,6 +8,9 @@ import { UploadIcon } from './icons/UploadIcon.tsx';
 import { FolderIcon } from './icons/FolderIcon.tsx';
 import { GitHubIcon } from './icons/GitHubIcon.tsx';
 import { shouldIncludeFile } from '../utils/fileFilter.ts';
+
+// Tell TypeScript that Prism will be available on the global scope from the script tag.
+declare const Prism: any;
 
 interface CodeInputProps {
   code: string;
@@ -173,11 +175,19 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
     folderInputRef.current?.click();
   };
   
-  const highlightCode = (code: string) => {
+  const highlightCode = (code: string): string => {
+    if (typeof Prism === 'undefined' || !Prism.languages) {
+      return code;
+    }
     const langAlias = language.toLowerCase().replace('++', 'cpp').replace('#', 'csharp');
     const grammar = Prism.languages[langAlias];
     if (grammar) {
-      return Prism.highlight(code, grammar, langAlias);
+      try {
+        return Prism.highlight(code, grammar, langAlias);
+      } catch (e) {
+        console.warn('Prism highlighting failed', e);
+        return code;
+      }
     }
     return code;
   };

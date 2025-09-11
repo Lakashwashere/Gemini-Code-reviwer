@@ -1,7 +1,7 @@
 import React from 'react';
 import { CodeIcon } from './icons/CodeIcon.tsx';
 
-export const Header: React.FC = React.memo(() => {
+export const Header: React.FC = () => {
   return (
     <header className="bg-dark-navy/80 backdrop-blur-lg p-4 border-b border-light-navy sticky top-0 z-10">
       <div className="max-w-6xl mx-auto flex items-center space-x-3">
@@ -12,4 +12,4 @@ export const Header: React.FC = React.memo(() => {
       </div>
     </header>
   );
-});
+};
