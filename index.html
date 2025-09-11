@@ -42,6 +42,19 @@
         background-repeat: no-repeat;
         background-size: 1.5em 1.5em;
       }
+      .diff { font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace; font-size: 14px; }
+      .diff-line { display: block; white-space: pre; }
+      .diff-added { background-color: rgba(46, 160, 67, 0.15); }
+      .diff-removed { background-color: rgba(248, 81, 73, 0.15); }
+      .diff-line::before {
+        display: inline-block;
+        width: 1.5em;
+        padding-left: 0.5em;
+        text-align: center;
+      }
+      .diff-added::before { content: '+'; color: #2ea043; }
+      .diff-removed::before { content: '-'; color: #f85149; }
+      .diff-common::before { content: ' '; }
     </style>
   <script type="importmap">
 {
@@ -51,7 +64,11 @@
     "react/": "https://esm.sh/react@^19.1.1/",
     "react": "https://esm.sh/react@^19.1.1",
     "react-simple-code-editor": "https://esm.sh/react-simple-code-editor@0.13.1",
-    "prismjs": "https://esm.sh/prismjs@1.29.0"
+    "prismjs": "https://esm.sh/prismjs@1.29.0",
+    "vite": "https://aistudiocdn.com/vite@^7.1.5",
+    "path": "https://aistudiocdn.com/path@^0.12.7",
+    "jszip": "https://esm.sh/jszip@3.10.1",
+    "diff": "https://esm.sh/diff@5.2.0"
   }
 }
 </script>

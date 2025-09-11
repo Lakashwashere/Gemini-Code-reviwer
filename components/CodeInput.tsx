@@ -1,8 +1,10 @@
 import React, { useRef, useState } from 'react';
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
+import JSZip from 'jszip';
 import { PROGRAMMING_LANGUAGES, LANGUAGE_EXTENSIONS, IGNORED_FILES_AND_DIRS } from '../constants';
 import { fetchRepoContents } from '../services/githubService';
+import { shouldIncludeFile } from '../utils/fileFilter';
 import { Loader } from './Loader';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { UploadIcon } from './icons/UploadIcon';
@@ -57,10 +59,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleTextFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
@@ -76,23 +75,73 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
     };
     reader.onerror = () => {
       console.error("Failed to read the file.");
+      setGithubError("Failed to read the selected file.");
     }
     reader.readAsText(file);
+  };
+  
+  const handleZipFile = async (file: File) => {
+    setIsFetchingRepo(true); // Reuse loading state for UI feedback
+    setGithubError(null);
+    try {
+        const zip = await JSZip.loadAsync(file);
+        let projectCode = '';
+        const filePromises: Promise<void>[] = [];
 
-    event.target.value = '';
+        zip.forEach((relativePath, zipEntry) => {
+            if (zipEntry.dir || !shouldIncludeFile(relativePath)) {
+                console.log(`Skipping: ${relativePath}`);
+                return;
+            }
+
+            const promise = zipEntry.async('string').then(content => {
+                projectCode += `// FILE: ${relativePath}\n${content}\n\n`;
+            });
+            filePromises.push(promise);
+        });
+
+        await Promise.all(filePromises);
+
+        if (!projectCode.trim()) {
+            throw new Error("No reviewable source code files found in the zip archive.");
+        }
+
+        setCode(projectCode);
+        setLanguage(getDefaultProjectLanguage(language));
+    } catch (err) {
+        console.error("Error reading zip file:", err);
+        setGithubError(err instanceof Error ? err.message : "Failed to process the zip file.");
+    } finally {
+        setIsFetchingRepo(false);
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    
+    setGithubError(null);
+
+    if (extension === 'zip') {
+      await handleZipFile(file);
+    } else {
+      handleTextFile(file);
+    }
+
+    event.target.value = ''; // Reset file input
   };
 
   const handleFolderChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-
+    
+    setGithubError(null);
     let projectCode = '';
     const filePromises = Array.from(files).map(file => {
       return new Promise<void>((resolve, reject) => {
-        const extension = file.name.split('.').pop()?.toLowerCase() || '';
-        const pathParts = file.webkitRelativePath.split('/');
-        
-        if (!LANGUAGE_EXTENSIONS[extension] || pathParts.some(part => IGNORED_FILES_AND_DIRS.includes(part))) {
+        if (!shouldIncludeFile(file.webkitRelativePath)) {
           console.log(`Skipping file: ${file.webkitRelativePath}`);
           resolve();
           return;
@@ -101,7 +150,6 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
         const reader = new FileReader();
         reader.onload = (e) => {
           const content = e.target?.result as string;
-          // Add a space after the colon to match the parser
           projectCode += `// FILE: ${file.webkitRelativePath}\n${content}\n\n`;
           resolve();
         };
@@ -119,6 +167,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
       setLanguage(getDefaultProjectLanguage(language));
     } catch (err) {
       console.error("Error reading folder contents:", err);
+      setGithubError("An error occurred while reading the folder.");
     }
 
     event.target.value = '';
@@ -138,7 +187,6 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
     if (grammar) {
       return Prism.highlight(code, grammar, langAlias);
     }
-    // Fallback for languages not loaded or aliased
     return code;
   };
 
@@ -172,7 +220,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
                   id="github-url"
                   type="url"
                   value={githubUrl}
-                  onChange={(e) => setGithubUrl(e.target.value)}
+                  onChange={(e) => { setGithubUrl(e.target.value); setGithubError(null); }}
                   onKeyDown={(e) => e.key === 'Enter' && handleFetchFromGithub()}
                   placeholder="https://github.com/owner/repo"
                   className="w-full bg-light-navy border border-light-navy text-lightest-slate rounded-md py-2 pr-3 pl-10 focus:ring-2 focus:ring-accent focus:outline-none"
@@ -218,7 +266,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
-                accept={Object.keys(LANGUAGE_EXTENSIONS).map(ext => `.${ext}`).join(',')}
+                accept={Object.keys(LANGUAGE_EXTENSIONS).map(ext => `.${ext}`).join(',') + ',.zip'}
               />
               <button
                   onClick={handleUploadClick}
@@ -236,7 +284,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
             onValueChange={setCode}
             highlight={highlightCode}
             padding={16}
-            placeholder="Paste your code here or upload a file/folder..."
+            placeholder="Paste your code here or upload a file/folder/zip..."
             className="language-clike" // Base styling class for Prism theme
             style={{
                 fontFamily: '"Fira Code", "Fira Mono", "Roboto Mono", monospace',

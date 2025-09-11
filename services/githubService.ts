@@ -1,4 +1,4 @@
-import { LANGUAGE_EXTENSIONS, IGNORED_FILES_AND_DIRS } from '../constants';
+import { shouldIncludeFile } from '../utils/fileFilter';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 
@@ -35,41 +35,59 @@ const parseRepoUrl = (url: string): { owner: string; repo: string } | null => {
   }
 };
 
-const shouldIncludeFile = (path: string): boolean => {
-  const extension = path.split('.').pop()?.toLowerCase() || '';
-  if (!LANGUAGE_EXTENSIONS[extension]) {
-    return false;
-  }
-
-  const pathParts = path.split('/');
-  for (const part of pathParts) {
-    if (IGNORED_FILES_AND_DIRS.includes(part)) {
-      return false;
+const handleAuthError = (status: number) => {
+    if (status === 401) {
+        const authError = `GitHub API authentication failed (401 Unauthorized).`;
+        const instruction = `This means the Personal Access Token is invalid, expired, or lacks the correct permissions. Please verify your VITE_GITHUB_PAT in the .env.local file and ensure it has 'public_repo' scope.`;
+        throw new Error(`${authError} ${instruction}`);
     }
-  }
-
-  return true;
+    if (status === 403) {
+        const rateLimitError = `GitHub API request forbidden (403 Forbidden).`;
+        const instruction = `This is likely due to rate limiting. Please ensure your VITE_GITHUB_PAT in the .env.local file is a valid token with 'public_repo' scope.`;
+        throw new Error(`${rateLimitError} ${instruction}`);
+    }
 };
 
 export const fetchRepoContents = async (repoUrl: string): Promise<string> => {
+  const GITHUB_PAT = process.env.GITHUB_PAT;
+
+  // The PAT is now required to prevent rate-limiting on unauthenticated requests.
+  if (!GITHUB_PAT) {
+    throw new Error(
+      'GitHub Personal Access Token is not configured. ' +
+      'Please create a token with `public_repo` scope and set it as VITE_GITHUB_PAT in your .env.local file to fetch repositories.'
+    );
+  }
+
   const repoInfo = parseRepoUrl(repoUrl);
   if (!repoInfo) {
     throw new Error("Invalid GitHub repository URL. Format should be: https://github.com/owner/repo");
   }
   const { owner, repo } = repoInfo;
 
-  const repoDetailsResponse = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`);
+  const headers: HeadersInit = {
+    'Accept': 'application/vnd.github.v3+json',
+    'Authorization': `Bearer ${GITHUB_PAT}`,
+  };
+  
+  const repoDetailsResponse = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, { headers });
   if (!repoDetailsResponse.ok) {
      if (repoDetailsResponse.status === 404) {
         throw new Error(`Repository not found. Please check the URL.`);
+     }
+     if (repoDetailsResponse.status === 401 || repoDetailsResponse.status === 403) {
+        handleAuthError(repoDetailsResponse.status);
      }
     throw new Error(`Failed to fetch repository details. Status: ${repoDetailsResponse.status}`);
   }
   const repoDetails: RepoDetails = await repoDetailsResponse.json();
   const defaultBranch = repoDetails.default_branch;
 
-  const treeResponse = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`);
+  const treeResponse = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`, { headers });
   if (!treeResponse.ok) {
+    if (treeResponse.status === 401 || treeResponse.status === 403) {
+      handleAuthError(treeResponse.status);
+    }
     throw new Error(`Failed to fetch repository file tree. Status: ${treeResponse.status}`);
   }
   const treeData: TreeResponse = await treeResponse.json();
@@ -91,7 +109,7 @@ export const fetchRepoContents = async (repoUrl: string): Promise<string> => {
   const fileContentPromises = filesToFetch.map(async (file) => {
     try {
       const rawFileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${file.path}`;
-      const rawFileResponse = await fetch(rawFileUrl);
+      const rawFileResponse = await fetch(rawFileUrl, { headers }); // Pass headers to raw fetch as well for private repos
 
       if (!rawFileResponse.ok) {
         console.error(`Failed to fetch raw file for ${file.path}. Status: ${rawFileResponse.status}`);

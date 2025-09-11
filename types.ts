@@ -1,5 +1,5 @@
 export interface Suggestion {
-  file?: string;
+  file: string;
   category: 'Readability' | 'Performance' | 'Security' | 'Best Practice' | 'Logic' | string;
   description: string;
   suggestion: string;

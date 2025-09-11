@@ -11,7 +11,7 @@ export const exportReviewAsMarkdown = (review: ReviewFeedback) => {
   if (suggestions.length > 0) {
       markdownContent += `## Suggestions\n\n`;
       suggestions.forEach(s => {
-          markdownContent += `### ${s.category} in \`${s.file || 'source.code'}\`\n\n`;
+          markdownContent += `### ${s.category} in \`${s.file}\`\n\n`;
           markdownContent += `**Issue:** ${s.description}\n\n`;
           markdownContent += `**Suggestion:**\n> ${s.suggestion.replace(/\n/g, '\n> ')}\n\n`;
           markdownContent += `---\n\n`;

@@ -4,6 +4,7 @@ import { ReviewOutput } from './ReviewOutput';
 import { RevisedCodeOutput } from './RevisedCodeOutput';
 import { ExplanationOutput } from './ExplanationOutput';
 import { AIPromptOutput } from './AIPromptOutput';
+import { DiffView } from './DiffView';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { generateImprovementPrompt } from '../utils/promptGenerator';
@@ -16,7 +17,7 @@ interface ResultsViewProps {
   code: string;
 }
 
-type Tab = 'suggestions' | 'explanation' | 'revisedCode' | 'aiPrompt';
+type Tab = 'suggestions' | 'explanation' | 'revisedCode' | 'diff' | 'aiPrompt';
 
 export const ResultsView: React.FC<ResultsViewProps> = ({ review, isLoading, error, code }) => {
   const [activeTab, setActiveTab] = useState<Tab>('suggestions');
@@ -70,15 +71,15 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ review, isLoading, err
               Suggestions
             </button>
             <button
-              onClick={() => setActiveTab('explanation')}
+              onClick={() => setActiveTab('diff')}
               className={`${
-                activeTab === 'explanation'
+                activeTab === 'diff'
                   ? 'border-accent text-accent'
                   : 'border-transparent text-slate hover:text-lightest-slate hover:border-slate'
               } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors duration-200 focus:outline-none`}
-              aria-current={activeTab === 'explanation' ? 'page' : undefined}
+              aria-current={activeTab === 'diff' ? 'page' : undefined}
             >
-              Explanation
+              Diff
             </button>
             <button
               onClick={() => setActiveTab('revisedCode')}
@@ -90,6 +91,17 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ review, isLoading, err
               aria-current={activeTab === 'revisedCode' ? 'page' : undefined}
             >
               Revised Code
+            </button>
+            <button
+              onClick={() => setActiveTab('explanation')}
+              className={`${
+                activeTab === 'explanation'
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-slate hover:text-lightest-slate hover:border-slate'
+              } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors duration-200 focus:outline-none`}
+              aria-current={activeTab === 'explanation' ? 'page' : undefined}
+            >
+              Explanation
             </button>
             <button
               onClick={() => setActiveTab('aiPrompt')}
@@ -118,6 +130,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ review, isLoading, err
           {activeTab === 'suggestions' && <ReviewOutput review={review} />}
           {activeTab === 'explanation' && <ExplanationOutput explanation={review.explanation} />}
           {activeTab === 'revisedCode' && <RevisedCodeOutput code={review.revisedCode} />}
+          {activeTab === 'diff' && <DiffView originalCode={code} revisedCode={review.revisedCode} />}
           {activeTab === 'aiPrompt' && <AIPromptOutput prompt={aiPrompt} />}
         </div>
       </div>
