@@ -12,10 +12,16 @@ const App: React.FC = () => {
   const [review, setReview] = useState<ReviewFeedback | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const API_KEY = process.env.API_KEY;
 
   const handleReviewRequest = useCallback(async () => {
     if (!code.trim()) {
       setError('Please enter some code to review.');
+      return;
+    }
+
+    if (!API_KEY) {
+      setError('API Key is not configured. Please ensure the API_KEY environment variable is set.');
       return;
     }
     
@@ -24,7 +30,7 @@ const App: React.FC = () => {
     setReview(null);
 
     try {
-      const result = await getCodeReview(code, language);
+      const result = await getCodeReview(code, language, API_KEY);
       setReview(result);
     } catch (err) {
       console.error(err);
@@ -32,7 +38,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [code, language]);
+  }, [code, language, API_KEY]);
 
   return (
     <div className="min-h-screen bg-dark-navy text-slate font-sans">

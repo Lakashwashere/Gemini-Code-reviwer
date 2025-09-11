@@ -101,6 +101,8 @@ export const fetchRepoContents = async (repoUrl: string): Promise<string> => {
         return null;
       }
       const blobData: BlobResponse = await blobResponse.json();
+      // NOTE: atob() is synchronous and can block the main thread for very large files.
+      // For very large repositories, consider offloading this to a Web Worker.
       const content = atob(blobData.content);
       return `// FILE: ${file.path}\n${content}\n\n`;
     } catch (e) {

@@ -1,12 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ReviewFeedback } from '../types';
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 const reviewSchema = {
   type: Type.OBJECT,
   properties: {
@@ -52,7 +46,12 @@ const reviewSchema = {
   required: ["summary", "suggestions", "revisedCode", "explanation"],
 };
 
-export const getCodeReview = async (code: string, language: string): Promise<ReviewFeedback> => {
+export const getCodeReview = async (code: string, language: string, apiKey: string): Promise<ReviewFeedback> => {
+  if (!apiKey) {
+    throw new Error("API Key is required for the getCodeReview function.");
+  }
+  const ai = new GoogleGenAI({ apiKey });
+  
   const isMultiFile = code.includes('// FILE:');
 
   const systemInstruction = `

@@ -40,9 +40,12 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
       }
       setCode(repoCode);
       // Set a sensible default language hint for projects
-      if (PROGRAMMING_LANGUAGES.includes('TypeScript')) {
-          setLanguage('TypeScript');
-      }
+      const defaultProjectLanguage = PROGRAMMING_LANGUAGES.includes('TypeScript')
+        ? 'TypeScript'
+        : PROGRAMMING_LANGUAGES.includes('JavaScript')
+          ? 'JavaScript'
+          : language;
+      setLanguage(defaultProjectLanguage);
       setGithubUrl(''); // Clear input on success
     } catch (err) {
       setGithubError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -108,9 +111,12 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
       await Promise.all(filePromises);
       setCode(projectCode);
       // Set a sensible default language hint for projects
-      if (PROGRAMMING_LANGUAGES.includes('TypeScript')) {
-          setLanguage('TypeScript');
-      }
+      const defaultProjectLanguage = PROGRAMMING_LANGUAGES.includes('TypeScript')
+        ? 'TypeScript'
+        : PROGRAMMING_LANGUAGES.includes('JavaScript')
+          ? 'JavaScript'
+          : language;
+      setLanguage(defaultProjectLanguage);
     } catch (err) {
       console.error("Error reading folder contents:", err);
     }
@@ -146,8 +152,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({ code, setCode, language, s
           id="language-select"
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
-          className="w-full bg-light-navy border border-light-navy text-lightest-slate rounded-md p-2 focus:ring-2 focus:ring-accent focus:outline-none mb-4 appearance-none"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364ffda' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+          className="w-full bg-light-navy border border-light-navy text-lightest-slate rounded-md p-2 focus:ring-2 focus:ring-accent focus:outline-none mb-4 appearance-none custom-select-arrow"
         >
           {PROGRAMMING_LANGUAGES.map((lang) => (
             <option key={lang} value={lang} className="bg-light-navy text-lightest-slate">
