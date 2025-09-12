@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF--8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gemini Code Reviewer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=optional" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" integrity="sha512-mIs9kKbaw6JutHwEK0sOAWCKNKA_NfzdB929J4MkImWIoU0G7xYRdGfcwzxKnoP1UOMxTKiAUiMvjIePj0G7XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              'dark-navy': '#0a192f',
-              'navy': '#112240',
-              'light-navy': '#233554',
+              'dark-navy': '#020c1b',
+              'navy': '#0a192f',
+              'light-navy': '#112240',
+              'lightest-navy': '#233554',
               'slate': '#8892b0',
               'light-slate': '#a8b2d1',
               'lightest-slate': '#ccd6f6',
@@ -25,8 +25,8 @@
               'accent': '#64ffda',
             },
             fontFamily: {
-              sans: ['Calibri', 'San Francisco', 'SF Pro Text', '-apple-system', 'system-ui', 'sans-serif'],
-              mono: ['Fira Code', 'Fira Mono', 'Roboto Mono', 'monospace'],
+              sans: ['Inter', 'sans-serif'],
+              mono: ['Fira Code', 'monospace'],
             },
             animation: {
               'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -36,48 +36,68 @@
       }
     </script>
     <style>
+      body {
+        background-color: #0a192f;
+      }
+      ::selection {
+        background-color: rgba(100, 255, 218, 0.1);
+      }
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #020c1b; }
+      ::-webkit-scrollbar-thumb { background: #112240; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #233554; }
+      .diff.diff-line { display: block; white-space: pre-wrap; }
+      .diff-added { background-color: rgba(0, 255, 0, 0.1); }
+      .diff-removed { background-color: rgba(255, 0, 0, 0.1); }
       .custom-select-arrow {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364ffda' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-        background-position: right 0.5rem center;
-        background-repeat: no-repeat;
-        background-size: 1.5em 1.5em;
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+          background-position: right 0.5rem center;
+          background-repeat: no-repeat;
+          background-size: 1.5em 1.5em;
+          padding-right: 2.5rem;
       }
-      .diff { font-family: 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace; font-size: 14px; }
-      .diff-line { display: block; white-space: pre; }
-      .diff-added { background-color: rgba(46, 160, 67, 0.15); }
-      .diff-removed { background-color: rgba(248, 81, 73, 0.15); }
-      .diff-line::before {
-        display: inline-block;
-        width: 1.5em;
-        padding-left: 0.5em;
-        text-align: center;
+      /* Ensure react-simple-code-editor and prism styles work well together */
+      .language-clike {
+        color: #ccc;
+        background: none;
+        font-family: Fira Code, Fira Mono, Roboto Mono, monospace;
+        font-size: 14px;
+        text-align: left;
+        white-space: pre;
+        word-spacing: normal;
+        word-break: normal;
+        word-wrap: normal;
+        line-height: 1.5;
+        -moz-tab-size: 4;
+        -o-tab-size: 4;
+        tab-size: 4;
+        -webkit-hyphens: none;
+        -moz-hyphens: none;
+        -ms-hyphens: none;
+        hyphens: none;
       }
-      .diff-added::before { content: '+'; color: #2ea043; }
-      .diff-removed::before { content: '-'; color: #f85149; }
-      .diff-common::before { content: ' '; }
     </style>
-  <script type="importmap">
+    <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@18.2.0",
-    "react/": "https://esm.sh/react@18.2.0/",
-    "react-dom": "https://esm.sh/react-dom@18.2.0",
-    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
     "@google/genai": "https://esm.sh/@google/genai@1.15.0",
-    "react-simple-code-editor": "https://esm.sh/react-simple-code-editor@0.13.1",
-    "prismjs": "https://esm.sh/prismjs@1.29.0",
-    "jszip": "https://esm.sh/jszip@3.10.1",
     "diff": "https://esm.sh/diff@5.2.0",
-    "vite": "https://aistudiocdn.com/vite@^7.1.5",
-    "path": "https://aistudiocdn.com/path@^0.12.7",
-    "process": "https://aistudiocdn.com/process@^0.11.10"
+    "jszip": "https://esm.sh/jszip@3.10.1",
+    "process": "https://esm.sh/process@0.11.10",
+    "react-simple-code-editor": "https://esm.sh/react-simple-code-editor@0.13.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "vite": "https://aistudiocdn.com/vite@^7.1.5"
   }
 }
 </script>
-</head>
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha512-S_1iUeEC7pMTSGk3jOPp7Z6pa982kOWhS5A6aE/Gcv1xKaxL2z2O/cVBisD1ds3isRaSQ1H6qb9aQv5Jd1uP3A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+    <script src="/prism-autoloader.min.js" defer></script>
   </body>
 </html>

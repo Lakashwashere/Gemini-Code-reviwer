@@ -1,4 +1,3 @@
-
 import type { ReviewFeedback } from '../types.ts';
 import { getMarkdownLanguageFromPath, parseMultiFileCode } from './codeParser.ts';
 
@@ -12,7 +11,9 @@ export const exportReviewAsMarkdown = (review: ReviewFeedback) => {
   if (suggestions.length > 0) {
       markdownContent += `## Suggestions\n\n`;
       suggestions.forEach(s => {
-          markdownContent += `### ${s.category} in \`${s.file}\`\n\n`;
+          // FIX: Safely handle the optional 'file' property to avoid printing "undefined".
+          const fileInfo = s.file ? ` in \`${s.file}\`` : '';
+          markdownContent += `### ${s.category}${fileInfo}\n\n`;
           markdownContent += `**Issue:** ${s.description}\n\n`;
           markdownContent += `**Suggestion:**\n> ${s.suggestion.replace(/\n/g, '\n> ')}\n\n`;
           markdownContent += `---\n\n`;

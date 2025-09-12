@@ -1,4 +1,3 @@
-
 import type { ReviewFeedback } from '../types.ts';
 
 export const generateImprovementPrompt = (review: ReviewFeedback, originalCode: string): string => {
@@ -31,7 +30,9 @@ ${review.summary}
 
   if (review.suggestions.length > 0) {
     review.suggestions.forEach((s, index) => {
-      prompt += `${index + 1}. **[${s.category}] in file "${s.file}"**:
+      // FIX: Safely handle the optional 'file' property to avoid printing "undefined".
+      const fileInfo = s.file ? ` in file "${s.file}"` : '';
+      prompt += `${index + 1}. **[${s.category}]${fileInfo}**:
    - **Issue:** ${s.description}
    - **Suggestion:** ${s.suggestion}\n\n`;
     });
